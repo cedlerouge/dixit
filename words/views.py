@@ -3,9 +3,12 @@ from django.views.generic import View
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.urlresolvers import reverse
+
+from django.http import HttpResponseRedirect
 
 from django.utils import timezone
-from words.model import Word
+from .models import Word
 from .forms import WordForm
 
 
@@ -17,27 +20,40 @@ logger.addHandler( logging.StreamHandler() )
 # Create your views here.
 
 class Index( View ): 
-    def get( self, reqquest ):
+    def get( self, request ):
         params  = {'error_message': None }
         w       = Word.objects.order_by('-date')
-        params['word'] = w
-        return render( request, 'words/display_words.html', params )
+        params['words'] = w
+        return render( request, 'word/display_words.html', params )
 
 
-class WordsView( View ):
+class WordView( View ):
     def get( self, request, word_id = None ):
         params  = {'error_message': None }
         form    = None
         if word_id:
             w       = get_object_or_404( Word, pk = word_id )
-            user    = User.objects.get( username = request.user.username )
-            if user.is_staff:
-                form    = WordForm( instance = w )
-                params['form']      = form
-                params['post_url']  = reverse( 'words:word_add', args=(words_id)) 
-                return render( request, 'words/word_form.html', params )
+            #TODO manage authentication
+            #user    = User.objects.get( username = request.user.username )
+            #if user.is_staff:
+            form    = WordForm(instance = w)
+        else:
+            form    = WordForm()
+        params['form']      = form
+        params['post_url']  = reverse( 'word_add', args=(word_id)) 
+        return render( request, 'word/word_form.html', params )
         #TODO else:
             # presenter un template contenant un message invitant à s'authentifier'
 
-    def post( self, resquest, word_id = None ):
-        
+    def post( self, request, word_id = None ):
+        form    = WordForm(request.POST)
+        if form.is_valid():
+            w   = Word()
+            w.author    = form.cleaned_data['author']
+            #w.date      = form.cleaned_data['date']
+            w.context   = form.cleaned_data['context']
+            w.user      = form.cleaned_data['user']
+            w.words     = form.cleaned_data['words']
+            w.save()
+            return HttpResponseRedirect( reverse('home'))
+        return render( request, 'word/word_form.html', { 'form': form } )

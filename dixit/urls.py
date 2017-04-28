@@ -15,7 +15,10 @@ Including another URLconf
 """
 from django.conf.urls import url
 from django.contrib import admin
+from words.views import Index, WordView
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
+    url(r'^$', Index.as_view(), name="home"),
+    url(r'add/', WordView.as_view(), name="word_add"),
 ]

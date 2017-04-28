@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %}
+<h2>Words</h2>
+{% endblock %}
+
+{% block content %}
+{% if words %}
+<div>
+    {% for w in words %}
+    <div>
+        <p>{{ w.author }} - {{ w.data }}</p>
+        <p>{{ w.context }}</p>
+        <p>{{ w.words }}</p>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<p>No words are available.</p>
+{% endif %}
+{% endblock %}
